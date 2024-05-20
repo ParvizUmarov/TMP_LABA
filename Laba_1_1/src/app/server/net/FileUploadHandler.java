@@ -36,7 +36,7 @@ public class FileUploadHandler extends Handler {
             throw new ServerException(STR."File size is bigger than '\{MAX_SIZE}' bytes ");
         }
 
-        transport.send(new FileUploadResponse(fileExists));
+        transport.send(new FileUploadResponse(fileExists, "file upload success"));
         if (fileExists) {
             transport.receive(FileUploadRewriteConfirmation.class);
         }

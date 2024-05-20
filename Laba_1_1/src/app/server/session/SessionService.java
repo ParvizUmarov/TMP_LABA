@@ -1,7 +1,6 @@
 package app.server.session;
 
-import app.transport.message.Message;
-
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -10,50 +9,29 @@ import static java.lang.Thread.sleep;
 
 // TODO session expiration
 public class SessionService {
-    private final Map<Token, Session> map = new ConcurrentHashMap<>();
+    private final Map<Token, Session> token2sessionMap = new ConcurrentHashMap<>();
     private final ConcurrentLinkedQueue<Object> queue = new ConcurrentLinkedQueue<>();
 
     public TokenSession create() {
         var token = new Token();
         var session = new Session();
-        map.put(token, session);
+        token2sessionMap.put(token, session);
         return new TokenSession(token, session);
     }
 
     public Session get(Token token) {
-        return map.get(token);
+        return token2sessionMap.get(token);
     }
 
     public void remove(Token token) {
-        map.remove(token);
+        token2sessionMap.remove(token);
 
     }
 
-    public void hasRequest(Message request) {
-        addRequest(request);
-        System.out.println(STR."added new request\{queue}");
+    public void hasRequest(Token token) {
+        token2sessionMap.get(token).setExpiredAt(LocalDateTime.now().plusMinutes(20));
     }
 
-    public void addRequest(Object element) {
-        queue.add(element);
-        new Thread(() -> {
-            while (!queue.isEmpty()) {
-                try {
-                    sleep(10000);
-                    queue.poll();
-                    System.out.println("REMOVED REQUEST");
-                    System.out.println(queue);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            //remove(token);
-        }).start();
-    }
-
-    public ConcurrentLinkedQueue<Object> getQueue() {
-        return queue;
-    }
 
     public record TokenSession(Token token, Session session) {
     }
@@ -62,16 +40,17 @@ public class SessionService {
         var t = new Thread(() -> {
             while (true) {
                 try {
-                    if (map != null) {
-                        var iter = map.entrySet().iterator();
+                    if (token2sessionMap != null) {
+                        var iter = token2sessionMap.entrySet().iterator();
                         while (iter.hasNext()) {
                             var session = iter.next().getValue();
-//                            if (session.isExpired()) {
-//                                iter.remove();
-//                            }
+                            if (session.isExpired()) {
+                                System.out.println(STR."Session time out");
+                                iter.remove();
+                            }
                         }
                     }
-                    Thread.sleep(1000);
+                    Thread.sleep(5000);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

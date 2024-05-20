@@ -9,12 +9,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.time.LocalDateTime;
 
 public class SerializedTransport implements Transport {
     private Socket socket;
     private ObjectOutputStream writer;
     private ObjectInputStream reader;
     private final IO logger = new IO();
+    private LocalDateTime expiredAt;
 
     public SerializedTransport() {
     }
@@ -35,10 +37,10 @@ public class SerializedTransport implements Transport {
     public void connect() throws TransportException {
         try {
             if (socket == null || socket.isClosed()) {
+                expiredAt = LocalDateTime.now().plusMinutes(20);
                 socket = new Socket(Settings.HOST, Settings.PORT);
                 writer = new ObjectOutputStream(socket.getOutputStream());
                 reader = new ObjectInputStream(socket.getInputStream());
-                logger.debug(STR."transport connected to \{socket}");
             }
         } catch (Exception e) {
             disconnect();
@@ -68,6 +70,14 @@ public class SerializedTransport implements Transport {
         } catch (Exception e) {
 //            disconnect();
             throw new TransportException(e);
+        }
+    }
+
+    private void isExpired(){
+        if(expiredAt != null){
+            if(LocalDateTime.now().isAfter(expiredAt)){
+                disconnect();
+            }
         }
     }
 
@@ -113,4 +123,20 @@ public class SerializedTransport implements Transport {
         if (socket == null || socket.isClosed())
             throw new TransportException("transport closed");
     }
+
+    {
+        var t = new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(5000);
+                    isExpired();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        t.setDaemon(true);
+        t.start();
+    }
+
 }

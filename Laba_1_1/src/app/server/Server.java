@@ -52,7 +52,10 @@ public class Server {
         try {
             var request = transport.receive();
             checkAuth(request);
-            sessionService.hasRequest(request);
+            if (request instanceof AuthorizedMessage auth) {
+                var token = Token.fromText(auth.getAuthToken());
+                sessionService.hasRequest(token);
+            }
             routeToHandler(transport, request);
 
         } catch (Exception e) {

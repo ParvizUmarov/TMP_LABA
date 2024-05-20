@@ -10,8 +10,7 @@ import app.server.session.SessionService;
 import app.server.session.Token;
 import app.transport.Transport;
 import app.transport.message.Message;
-import app.transport.message.storage.DirectoryUploadRequest;
-import app.transport.message.storage.DirectoryUploadResponse;
+import app.transport.message.storage.*;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -31,20 +30,18 @@ public class DirectoryUploadHandler extends Handler {
 
     @Override
     public void handle(Message message) {
-        var req = (DirectoryUploadRequest) message;
+        var directoryUploadRequest = (DirectoryUploadRequest) message;
 
-        var username = sessionService.get(Token.fromText(req.getAuthToken())).getString(Session.USERNAME);
-        var directoryName = req.getDirectoryName();
+        var username = sessionService.get(Token.fromText(directoryUploadRequest.getAuthToken())).getString(Session.USERNAME);
+        var directoryName = directoryUploadRequest.getDirectoryName();
         var directoryPath = Path.of(directoryName);
 
-        var dirName = Path.of(String.valueOf(directoryPath)).getFileName();
+//        var subdirectoryName = directoryUploadRequest.getSubdirectoryName();
+//        File subDir = new File(STR."\{Settings.SERVER_FILE_STORAGE_BASE_PATH}/\{username}/\{subdirectoryName}");
+//
+//        subDir.mkdir();
 
-        try (var files = Files.list(directoryPath)) {
-            List<String> list = files
-                    .filter(Files::isRegularFile)
-                    .map(path -> path.getFileName().toString())
-                    .sorted()
-                    .toList();
+        var dirName = Path.of(String.valueOf(directoryPath)).getFileName();
 
             File dir = new File(STR."\{Settings.SERVER_FILE_STORAGE_BASE_PATH}/\{username}/\{dirName}");
             if (dir.exists()) {
@@ -52,20 +49,32 @@ public class DirectoryUploadHandler extends Handler {
             }
 
             dir.mkdir();
+
             var directoryUploadPath = Path.of(username, String.valueOf(dirName)).toString();
 
-            for (var file : list) {
-                try (var fileOutputStream = fileSystemService.getDirOutputStream(directoryUploadPath, file)) {
+            int counter = 0;
+            while(directoryUploadRequest.getFileCount() != counter){
+                counter++;
+                System.out.println("file #" + counter);
+                var fileUploadRequest = transport.receive(FileUploadRequest.class);
+                var response = STR."file \{fileUploadRequest.getFilename()} is upload";
+                transport.send(new FileUploadResponse(false, response));
+
+                try (var fileOutputStream = fileSystemService.getDirOutputStream(directoryUploadPath, fileUploadRequest.getFilename())) {
                     var transpotInputStream = transport.getInputStream();
-                    transpotInputStream.transferTo(fileOutputStream);
+                    for (long i = 0; i < fileUploadRequest.getSize(); i++) {
+                        int b = transpotInputStream.read();
+                        fileOutputStream.write(b);
+                    }
                     fileOutputStream.flush();
                 } catch (Exception e) {
                     throw new ServerException(e);
                 }
+
             }
-            transport.send(new DirectoryUploadResponse("Directory is uploaded success !!!"));
-        } catch (Exception e) {
-            throw new FileStorageException(e);
-        }
+
+        transport.send(new DirectoryUploadResponse("Directory successfully upload"));
+
     }
 }
+

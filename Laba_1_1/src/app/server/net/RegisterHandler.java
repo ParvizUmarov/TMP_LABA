@@ -33,9 +33,6 @@ public class RegisterHandler extends Handler {
         if (!fileSystemService.isUsernameValid(username)) {
             throw new ServerException("username is invalid, pattern: [a-zA-Z0-9_]+");
         }
-        if (userService.userExists(username)) {
-            throw new ServerException("user registered already");
-        }
         transport.send(new SuccessResponse());
 
         var password = transport.receive(RegisterPasswordRequest.class).getPassword();
@@ -43,11 +40,8 @@ public class RegisterHandler extends Handler {
         if (!userService.isPasswordValid(password)) {
             throw new ServerException("password is invalid");
         }
+
         File dir = new File(STR."\{Settings.SERVER_FILE_STORAGE_BASE_PATH}/\{username}");
-        if(dir.exists()){
-            var errorMessage = STR."Username with name '\{username}' is already exist.";
-            throw new ServerException(errorMessage);
-        }
 
         dir.mkdir();
         userService.register(username, password);

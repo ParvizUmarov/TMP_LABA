@@ -20,8 +20,8 @@ public class HelpCommand extends Command{
                 "\n-> file list" +
                 "\n-> file up" +
                 "\n-> file down" +
-                "\n-> delete file" +
-                "\n-> upload directory" +
+                "\n-> del file" +
+                "\n-> dir up" +
                 "\n-> help\n");
     }
 }
