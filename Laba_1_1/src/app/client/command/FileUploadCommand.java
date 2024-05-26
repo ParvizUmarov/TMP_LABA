@@ -25,6 +25,10 @@ public class FileUploadCommand extends Command {
     protected void performConnected() throws IOException {
         io.print(STR."enter file name (default '\{Settings.DEFAULT_FILENAME_TO_UPLOAD}'):");
         var file = io.readln();
+
+        io.print(STR."enter folder where you want upload in your storage:");
+        var subDir = io.readln();
+
         if (file.isBlank()) {
             file = Settings.DEFAULT_FILENAME_TO_UPLOAD;
         }
@@ -33,7 +37,6 @@ public class FileUploadCommand extends Command {
             throw new CommandException("file doesn't exist or is not a regular file");
         }
 
-        // TODO ограничение на размер файла
         var filename = path.getFileName().toString();
         var fileSize = Files.size(path);
 
@@ -41,7 +44,7 @@ public class FileUploadCommand extends Command {
             throw new CommandException(STR."File size is bigger than '\{MAX_SIZE}' bytes ");
         }
 
-        transport.send(new FileUploadRequest(tokenHolder.getToken(), filename, fileSize));
+        transport.send(new FileUploadRequest(tokenHolder.getToken(), filename,fileSize, subDir));
         var response = expectMessage(FileUploadResponse.class);
 
         if (response.isRewriteCollision()) {

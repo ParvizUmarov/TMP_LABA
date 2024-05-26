@@ -15,6 +15,11 @@ import app.transport.message.storage.*;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -24,6 +29,8 @@ public class Server {
     private final UserService userService = new UserService();
     private final SessionService sessionService = new SessionService();
     private ExecutorService pool = Executors.newCachedThreadPool();
+    private List<Transport> transports = new ArrayList<>();
+    private List<Transport> clientTransports = Collections.synchronizedList(transports);
 
     public static void main(String[] args) throws Exception {
         new Server().listenLoop();
@@ -36,7 +43,7 @@ public class Server {
                 try {
                     var clientSocket = ss.accept();
                     io.println(STR."client connected: \{clientSocket}");
-                    pool.submit(() -> handle(new SerializedTransport(clientSocket)));
+                    pool.submit(new ClientHandler(clientSocket));
                 } catch (Exception e) {
                     io.println(STR."error: \{e.getMessage()}");
                 }
@@ -46,18 +53,53 @@ public class Server {
         }
     }
 
-    private void handle(Transport transport) {
-        try {
-            var request = transport.receive();
-            checkAuth(request);
-            routeToHandler(transport, request);
-        } catch (Exception e) {
-            io.println(STR."handle error: \{e.getMessage()}");
-            transport.send(new ErrorResponse(e.getMessage()));
-        } finally {
-            transport.disconnect();
+    private class ClientHandler implements Runnable {
+        private final Socket clientSocket;
+        private Transport transport;
+
+        public ClientHandler(Socket clientSocket) {
+            this.clientSocket = clientSocket;
+        }
+
+        @Override
+        public void run() {
+            try {
+                transport = new SerializedTransport(clientSocket);
+                clientTransports.add(transport);
+                System.out.println(STR."all transports: \{clientTransports}");
+//                new Properties().
+                while (true) {
+                    var request = transport.receive();
+                    checkAuth(request);
+                    routeToHandler(transport, request);
+                }
+            } catch (Exception e) {
+                io.println(STR."handle error: \{e.getMessage()}");
+                if (transport != null) {
+                    transport.send(new ErrorResponse(e.getMessage()));
+                    //transport.disconnect();
+                }
+                try {
+                    clientSocket.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
         }
     }
+
+//    private void handle(Transport transport) {
+//        try {
+//            while(true){
+//                var request = transport.receive();
+//                checkAuth(request);
+//                routeToHandler(transport, request);
+//            }
+//        } catch (Exception e) {
+//            io.println(STR."handle error: \{e.getMessage()}");
+//            transport.send(new ErrorResponse(e.getMessage()));
+//        }
+//    }
 
     private void checkAuth(Message request) {
         if (request instanceof AuthorizedMessage auth) {
@@ -78,6 +120,7 @@ public class Server {
             case LoginRequest req -> new LoginHandler(transport, io, userService, sessionService);
             case CheckAuthRequest req -> new CheckAuthHandler(transport, io, sessionService);
             case LogoutRequest req -> new LogoutHandler(transport, io, sessionService);
+            case SendMessageRequest req -> new SendMessageHandler(transport, io, sessionService, clientTransports);
             default -> new UnimplementedHandler(transport, io);
         }).handle(request);
     }

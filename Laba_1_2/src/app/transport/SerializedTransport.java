@@ -4,11 +4,12 @@ import app.IO;
 import app.Settings;
 import app.transport.message.Message;
 
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.lang.reflect.Field;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SerializedTransport implements Transport {
     private Socket socket;
@@ -17,6 +18,7 @@ public class SerializedTransport implements Transport {
     private final IO logger = new IO();
 
     public SerializedTransport() {
+
     }
 
     public SerializedTransport(Socket socket) {
@@ -26,7 +28,7 @@ public class SerializedTransport implements Transport {
             reader = new ObjectInputStream(socket.getInputStream());
             logger.debug(STR."transport joined to socket \{socket}");
         } catch (Exception e) {
-            disconnect();
+            //disconnect();
             throw new TransportException(e);
         }
     }
@@ -41,7 +43,7 @@ public class SerializedTransport implements Transport {
                 logger.debug(STR."transport connected to \{socket}");
             }
         } catch (Exception e) {
-            disconnect();
+            //disconnect();
             throw new TransportException(e);
         }
     }

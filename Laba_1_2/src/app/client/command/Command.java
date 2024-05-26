@@ -20,8 +20,6 @@ abstract public class Command {
             performConnected();
         } catch (Exception e) {
             throw new CommandException(e);
-        } finally {
-            transport.disconnect();
         }
     }
 

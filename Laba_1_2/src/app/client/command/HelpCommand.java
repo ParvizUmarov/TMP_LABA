@@ -9,8 +9,8 @@ public class HelpCommand extends Command{
     }
 
     @Override
-    public void perform() {
-        super.perform();
+    protected void performConnected() throws Exception {
+        super.performConnected();
         io.print("All commands: " +
                 "\n-> exit" +
                 "\n-> register" +
@@ -18,5 +18,6 @@ public class HelpCommand extends Command{
                 "\n-> token" +
                 "\n-> check auth" +
                 "\n-> help\n");
+
     }
 }

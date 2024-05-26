@@ -23,10 +23,13 @@ public class SessionService {
     }
 
     public void remove(Token token) {
-
         map.remove(token);
     }
 
     public record TokenSession(Token token, Session session) {
+    }
+
+    public Map<Token, Session> getMap() {
+        return map;
     }
 }

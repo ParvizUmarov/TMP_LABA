@@ -51,7 +51,7 @@ public class DirectoryUploadCommand extends Command {
                 var fileSize = Files.size(filePath);
                 try (var fileInputStream = Files.newInputStream(filePath)) {
                     io.println(STR."File \{file} is \{i++} send");
-                    transport.send(new FileUploadRequest(tokenHolder.getToken(), file, fileSize));
+                    transport.send(new FileUploadRequest(tokenHolder.getToken(), file, fileSize, ""));
 
                     var response = expectMessage(FileUploadResponse.class);
 

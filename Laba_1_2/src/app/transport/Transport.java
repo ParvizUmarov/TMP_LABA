@@ -4,6 +4,8 @@ import app.transport.message.Message;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.Socket;
+import java.util.List;
 
 public interface Transport {
     void connect() throws TransportException;

@@ -1,6 +1,7 @@
 package app.server.net;
 
 import app.IO;
+import app.Settings;
 import app.server.ServerException;
 import app.server.filestorage.FileStorageService;
 import app.server.session.Session;
@@ -11,6 +12,8 @@ import app.transport.message.Message;
 import app.transport.message.storage.FileUploadRequest;
 import app.transport.message.storage.FileUploadResponse;
 import app.transport.message.storage.FileUploadRewriteConfirmation;
+
+import java.io.File;
 
 public class FileUploadHandler extends Handler {
     private final FileStorageService fileSystemService;
@@ -28,8 +31,12 @@ public class FileUploadHandler extends Handler {
         var req = (FileUploadRequest) message;
         var fileSize = req.getSize();
         var username = sessionService.get(Token.fromText(req.getAuthToken())).getString(Session.USERNAME);
+        var subDir = req.getSubDir();
 
-        var filename = req.getFilename();
+        File file = new File(STR."\{Settings.SERVER_FILE_STORAGE_BASE_PATH}/\{username}/\{subDir}");
+        file.mkdir();
+
+        var filename = subDir + "/" + req.getFilename();
         var fileExists = fileSystemService.fileExists(username, filename);
 
         if(fileSize > MAX_SIZE){

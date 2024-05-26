@@ -4,12 +4,14 @@ import app.IO;
 import app.client.command.*;
 import app.transport.SerializedTransport;
 import app.transport.Transport;
+import app.transport.TransportException;
 import app.ui.UI;
 
 public class Client {
     private final IO io = new IO();
-    private final Transport transport = new SerializedTransport();
+    private static final Transport transport = new SerializedTransport();
     private final TokenHolder tokenHolder = new TokenHolder();
+    private boolean connected = false;
 
     public static void main(String[] args) {
         new Client().commandLoop();
@@ -18,7 +20,6 @@ public class Client {
     private void commandLoop() {
         String userInput;
         do {
-            io.print(UI.CHAT_WELCOME_TITLE);
             io.print(">>> ");
             userInput = io.readln().strip().toLowerCase();
             final String unrecognizedCommand = STR."\{userInput}: Command not found. Try <help>";
@@ -31,6 +32,7 @@ public class Client {
                     case "check auth" -> new CheckAuthCommand(transport, io, tokenHolder);
                     case "logout" -> new LogoutCommand(transport, io, tokenHolder.getToken());
                     case "help" -> new HelpCommand(transport, io);
+                    case "send" -> new SendMessageCommand(transport, io, tokenHolder);
                     default -> new PrintCommand(transport, io, unrecognizedCommand);
                 }).perform();
             } catch (Exception e) {
@@ -38,5 +40,4 @@ public class Client {
             }
         } while (!"exit".equals(userInput));
     }
-
 }

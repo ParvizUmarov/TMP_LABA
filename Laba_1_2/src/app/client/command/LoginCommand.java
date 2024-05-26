@@ -5,6 +5,7 @@ import app.client.TokenHolder;
 import app.transport.Transport;
 import app.transport.message.storage.LoginRequest;
 import app.transport.message.storage.LoginResponse;
+import app.ui.UI;
 
 public class LoginCommand extends Command {
     private final TokenHolder tokenHolder;
@@ -23,6 +24,7 @@ public class LoginCommand extends Command {
         transport.send(new LoginRequest(username, password));
 
         var response = expectMessage(LoginResponse.class);
+        io.print(STR."\{UI.CHAT_WELCOME_TITLE}");
         tokenHolder.setToken(response.getToken());
 
         io.println(STR."User successfully login with token \{tokenHolder.getToken()}");

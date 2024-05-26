@@ -36,21 +36,27 @@ public class DirectoryUploadHandler extends Handler {
         var directoryName = directoryUploadRequest.getDirectoryName();
         var directoryPath = Path.of(directoryName);
 
-//        var subdirectoryName = directoryUploadRequest.getSubdirectoryName();
-//        File subDir = new File(STR."\{Settings.SERVER_FILE_STORAGE_BASE_PATH}/\{username}/\{subdirectoryName}");
-//
-//        subDir.mkdir();
+        var subdirectoryName = directoryUploadRequest.getSubdirectoryName();
+        File subDir = new File(STR."\{Settings.SERVER_FILE_STORAGE_BASE_PATH}/\{username}/\{subdirectoryName}");
+
+        subDir.mkdir();
 
         var dirName = Path.of(String.valueOf(directoryPath)).getFileName();
+        var subDirPath = STR."\{Settings.SERVER_FILE_STORAGE_BASE_PATH}/\{username}/\{subdirectoryName}/\{dirName}";
 
-            File dir = new File(STR."\{Settings.SERVER_FILE_STORAGE_BASE_PATH}/\{username}/\{dirName}");
+            File dir = new File(subDirPath);
             if (dir.exists()) {
                 throw new ServerException("Directory is exist");
             }
 
             dir.mkdir();
 
-            var directoryUploadPath = Path.of(username, String.valueOf(dirName)).toString();
+            var path = Path.of(subdirectoryName);
+            var subDirName = Path.of(String.valueOf(path)).getFileName();
+
+
+            var directoryUploadPath = Path.of(username, String.valueOf(subDirName)).toString();
+            System.out.println("dir path " + directoryUploadPath);
 
             int counter = 0;
             while(directoryUploadRequest.getFileCount() != counter){
