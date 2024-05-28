@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.ChatController">
+        <TextArea fx:id="area" editable="false" prefHeight="351.0" prefWidth="600.0" VBox.vgrow="ALWAYS" />
+        <HBox />
+         <TextField fx:id="message" layoutX="14.0" layoutY="362.0" onAction="#sendMessageAction" prefHeight="24.0" prefWidth="471.0" promptText="Enter message ... " />
+         <Button fx:id="sendBtn" layoutX="495.0" layoutY="362.0" onAction="#sendMessageAction" prefHeight="24.0" prefWidth="95.0" text="send" />
+
+
+</AnchorPane>
