@@ -4,8 +4,6 @@ import app.IO;
 import app.client.command.*;
 import app.transport.SerializedTransport;
 import app.transport.Transport;
-import app.transport.TransportException;
-import app.ui.UI;
 
 public class Client {
     private final IO io = new IO();

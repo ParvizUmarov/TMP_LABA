@@ -5,6 +5,7 @@ import app.server.session.Session;
 import app.server.session.SessionService;
 import app.server.session.Token;
 import app.transport.Transport;
+import app.transport.TransportException;
 import app.transport.message.Message;
 import app.transport.message.storage.SendMessageRequest;
 import app.transport.message.storage.SendMessageResponse;
@@ -27,10 +28,16 @@ public class SendMessageHandler extends Handler{
         var username = sessionService.get(token).getString(Session.USERNAME);
 
         transport.send(new SendMessageResponse(username, req.getMessage(), req.getTime()));
+
         for(var newTransport : transports){
+            System.out.println("sending to " + newTransport);
             if(newTransport != transport){
-                newTransport.send(new SendMessageResponse(username, req.getMessage(), req.getTime()));
-                io.println(STR."send message to \{newTransport}");
+                try {
+                    newTransport.send(new SendMessageResponse(username, req.getMessage(), req.getTime()));
+                    io.println(STR."send message to \{newTransport}");
+                } catch (TransportException e) {
+                    // TODO remove from transports via iterators
+                }
             }
         }
         io.println(STR."user <\{username}> send message <<\{req.getMessage()}>> time \{req.getTime()}");

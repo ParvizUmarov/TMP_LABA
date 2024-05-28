@@ -10,9 +10,6 @@ import app.transport.message.Message;
 import app.transport.message.storage.LoginRequest;
 import app.transport.message.storage.LoginResponse;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 public class LoginHandler extends Handler {
     private final UserService userService;
     private final SessionService sessionService;

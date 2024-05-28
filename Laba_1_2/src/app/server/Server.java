@@ -19,11 +19,9 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static java.lang.StringTemplate.STR;
 public class Server {
     private final IO io = new IO();
     private final UserService userService = new UserService();
@@ -31,12 +29,32 @@ public class Server {
     private ExecutorService pool = Executors.newCachedThreadPool();
     private List<Transport> transports = new ArrayList<>();
     private List<Transport> clientTransports = Collections.synchronizedList(transports);
+    private List<Transport> clientNotificationTransports = Collections.synchronizedList(transports);
 
     public static void main(String[] args) throws Exception {
         new Server().listenLoop();
     }
 
     private void listenLoop() throws IOException {
+        new Thread(() -> {
+            try (var ss = new ServerSocket(Settings.NOTIFICATION_PORT)) {
+                io.println(STR."server notifications listening on port \{Settings.PORT}");
+                while (true) {
+                    try {
+                        var clientSocket = ss.accept();
+                        io.println(STR."client connected: \{clientSocket}");
+                        clientNotificationTransports.add(new SerializedTransport(
+                                clientSocket));
+                    } catch (Exception e) {
+                        io.println(STR."error: \{e.getMessage()}");
+                    }
+                }
+            } catch (Exception e) {
+
+            } finally {
+                pool.shutdown();
+            }
+        }).start();
         try (var ss = new ServerSocket(Settings.PORT)) {
             io.println(STR."server listening on port \{Settings.PORT}");
             while (true) {
@@ -70,7 +88,9 @@ public class Server {
 //                new Properties().
                 while (true) {
                     var request = transport.receive();
+                    io.debug("received " + request);
                     checkAuth(request);
+                    io.debug("auth checked");
                     routeToHandler(transport, request);
                 }
             } catch (Exception e) {
@@ -120,7 +140,7 @@ public class Server {
             case LoginRequest req -> new LoginHandler(transport, io, userService, sessionService);
             case CheckAuthRequest req -> new CheckAuthHandler(transport, io, sessionService);
             case LogoutRequest req -> new LogoutHandler(transport, io, sessionService);
-            case SendMessageRequest req -> new SendMessageHandler(transport, io, sessionService, clientTransports);
+            case SendMessageRequest req -> new SendMessageHandler(transport, io, sessionService, clientNotificationTransports);
             default -> new UnimplementedHandler(transport, io);
         }).handle(request);
     }

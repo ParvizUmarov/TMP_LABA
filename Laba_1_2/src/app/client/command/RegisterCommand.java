@@ -5,7 +5,6 @@ import app.transport.Transport;
 import app.transport.message.SuccessResponse;
 import app.transport.message.storage.RegisterPasswordRequest;
 import app.transport.message.storage.RegisterUsernameRequest;
-import app.ui.UI;
 
 public class RegisterCommand extends Command {
     public RegisterCommand(Transport transport, IO io) {

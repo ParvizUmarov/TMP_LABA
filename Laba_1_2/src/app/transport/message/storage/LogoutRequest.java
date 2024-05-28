@@ -1,6 +1,5 @@
 package app.transport.message.storage;
 
-import app.server.session.Token;
 import app.transport.message.Message;
 
 public class LogoutRequest extends Message {

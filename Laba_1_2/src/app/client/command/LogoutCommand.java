@@ -1,10 +1,7 @@
 package app.client.command;
 
 import app.IO;
-import app.client.TokenHolder;
 import app.transport.Transport;
-import app.transport.message.storage.CheckAuthResponse;
-import app.transport.message.storage.LoginRequest;
 import app.transport.message.storage.LogoutRequest;
 import app.transport.message.storage.LogoutResponse;
 

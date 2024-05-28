@@ -1,7 +1,6 @@
 package app.server.net;
 
 import app.IO;
-import app.Settings;
 import app.server.ServerException;
 import app.server.user.UserService;
 import app.transport.Transport;

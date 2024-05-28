@@ -4,24 +4,29 @@ import app.IO;
 import app.Settings;
 import app.transport.message.Message;
 
-import java.io.*;
-import java.lang.reflect.Field;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class SerializedTransport implements Transport {
     private Socket socket;
     private ObjectOutputStream writer;
     private ObjectInputStream reader;
     private final IO logger = new IO();
+    private final int port;
 
     public SerializedTransport() {
+        port = Settings.PORT;
+    }
 
+    public SerializedTransport(int port) {
+        this.port = port;
     }
 
     public SerializedTransport(Socket socket) {
+        port = socket.getPort();
         try {
             this.socket = socket;
             writer = new ObjectOutputStream(socket.getOutputStream());
@@ -37,7 +42,7 @@ public class SerializedTransport implements Transport {
     public void connect() throws TransportException {
         try {
             if (socket == null || socket.isClosed()) {
-                socket = new Socket(Settings.HOST, Settings.PORT);
+                socket = new Socket(Settings.HOST, port);
                 writer = new ObjectOutputStream(socket.getOutputStream());
                 reader = new ObjectInputStream(socket.getInputStream());
                 logger.debug(STR."transport connected to \{socket}");
@@ -80,7 +85,9 @@ public class SerializedTransport implements Transport {
 
     @Override
     public <T extends Message> T receive(Class<T> type) throws TransportException {
+        logger.debug("in receive()");
         checkIsConnected();
+        logger.debug("connection checked");
         try {
             var msg = type.cast(reader.readObject());
             logger.debug(STR."transport received \{msg}");
@@ -112,7 +119,16 @@ public class SerializedTransport implements Transport {
     }
 
     private void checkIsConnected() {
-        if (socket == null || socket.isClosed())
+        if (socket == null || socket.isClosed()) {
+            System.out.println(Thread.currentThread().getName() + ": NOT CONNECTED!");
             throw new TransportException("transport closed");
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "SerializedTransport{" +
+                "socket=" + socket +
+                '}';
     }
 }

@@ -3,6 +3,7 @@ package app;
 public interface Settings {
     String HOST = "localhost";
     int PORT = 5566;
+    int NOTIFICATION_PORT = 5567;
     boolean DEBUG_ON = false;
     String SERVER_FILE_STORAGE_BASE_PATH = "/home/parviz/file_storage";
     String FILE_STORAGE_PATH = "/home/parviz/";

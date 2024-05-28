@@ -1,7 +1,10 @@
 package app.client.command;
 
 import app.IO;
+import app.Settings;
+import app.client.MessageListener;
 import app.client.TokenHolder;
+import app.transport.SerializedTransport;
 import app.transport.Transport;
 import app.transport.message.storage.LoginRequest;
 import app.transport.message.storage.LoginResponse;
@@ -28,5 +31,23 @@ public class LoginCommand extends Command {
         tokenHolder.setToken(response.getToken());
 
         io.println(STR."User successfully login with token \{tokenHolder.getToken()}");
+
+        var thread = new Thread(new MessageListener(new SerializedTransport(
+                Settings.NOTIFICATION_PORT), io));
+        thread.setName("MessageListenerThread");
+        thread.start();
     }
+
+//    public static void main(String[] args) {
+//        var list = new ArrayList<>(List.of(1,2,3));
+//        var iter = list.listIterator();
+//        while (iter.hasNext()) {
+//            var i = iter.next();
+//            System.out.println("i = " + i);
+//            if (i == 2) {
+//                iter.add(4);
+//            }
+//        }
+//        System.out.println(list);
+//    }
 }

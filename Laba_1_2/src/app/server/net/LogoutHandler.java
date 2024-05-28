@@ -6,8 +6,6 @@ import app.server.session.SessionService;
 import app.server.session.Token;
 import app.transport.Transport;
 import app.transport.message.Message;
-import app.transport.message.storage.LoginRequest;
-import app.transport.message.storage.LoginResponse;
 import app.transport.message.storage.LogoutRequest;
 import app.transport.message.storage.LogoutResponse;
 
