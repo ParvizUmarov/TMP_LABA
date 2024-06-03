@@ -3,11 +3,14 @@ package org.example.transport;
 import org.example.IO;
 import org.example.Settings;
 import org.example.message.Message;
+import org.example.message.ResponseListener;
+import org.example.message.storage.LoginResponse;
 import org.w3c.dom.ls.LSOutput;
 
 import java.io.*;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class Transport {
@@ -64,8 +67,39 @@ public class Transport {
         }
     }
 
-    public Message receive(Class<Message> messageClass) throws TransportException {
-        return receive(Message.class);
+//    public String receiveSignal() throws TransportException {
+//        checkIsConnected();
+//        try {
+//            byte[] signalBuffer = new byte[5];
+//            reader.readFully(signalBuffer);
+//            return new String(signalBuffer, StandardCharsets.UTF_8);
+//        } catch (IOException e) {
+//            throw new TransportException("Error receiving signal: " + e.getMessage());
+//        }
+//    }
+
+    public Message receiveMessage() throws TransportException {
+        checkIsConnected();
+        try {
+
+            System.out.println("available " + reader.available());
+            byte[] lengthBuffer = new byte[4];
+            reader.readFully(lengthBuffer); // Чтение 4 байт, представляющих длину сообщения
+
+            int length = ByteBuffer.wrap(lengthBuffer).getInt(); // Преобразование 4 байт в int
+            if (length <= 0) {
+                throw new TransportException("Invalid length received: " + length);
+            }
+
+            byte[] byteArray = new byte[1024];
+            reader.readFully(byteArray); // Чтение полезной нагрузки
+
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
+            ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
+            return (Message) objectInputStream.readObject(); // Десериализация полезной нагрузки в объект
+        } catch (Exception e) {
+            throw new TransportException(e);
+        }
     }
 
     private void checkIsConnected() {
@@ -74,7 +108,4 @@ public class Transport {
             throw new TransportException("transport closed");
         }
     }
-
-
-
 }
