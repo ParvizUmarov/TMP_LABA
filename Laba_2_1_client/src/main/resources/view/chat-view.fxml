@@ -11,8 +11,8 @@
 
         </ScrollPane>
         <HBox />
-         <TextField fx:id="message" layoutX="14.0" layoutY="362.0" onAction="#sendMessageAction" prefHeight="24.0" prefWidth="471.0" promptText="Enter message ... " />
-         <Button fx:id="sendBtn" layoutX="495.0" layoutY="362.0" onAction="#sendMessageAction" prefHeight="24.0" prefWidth="95.0" text="send" />
+         <TextField fx:id="message" layoutX="14.0" layoutY="362.0" onAction="#sendMessageAction" prefHeight="24.0" prefWidth="449.0" promptText="Enter message ... " />
+         <Button fx:id="sendBtn" layoutX="475.0" layoutY="362.0" onAction="#sendMessageAction" prefHeight="24.0" prefWidth="115.0" text="send" />
 
 
 </AnchorPane>

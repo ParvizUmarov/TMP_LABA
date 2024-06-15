@@ -65,7 +65,7 @@ public class Transport {
         checkIsConnected();
         try {
             int length = reader.readInt();
-            System.out.println("length: " + length);
+            logger.println("receive response=length: " + length);
             if (length <= 0) {
                 throw new TransportException("Invalid length received: " + length);
             }
