@@ -5,8 +5,7 @@ import org.example.entity.MessageEntity;
 
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class MessageRepo {
 
@@ -29,7 +28,7 @@ public class MessageRepo {
         }
     }
 
-    public List<MessageEntity> getAllMessages() {
+    public List<MessageEntity> getLimitMessage(int limit) {
         List<MessageEntity> messages = new ArrayList<>();
         try (Connection conn = DriverManager.getConnection(
                 Settings.url,
@@ -37,7 +36,10 @@ public class MessageRepo {
                 Settings.password)) {
             if (conn != null) {
                 System.out.println("Successful connection");
-                String request = "SELECT * FROM \"message\"";
+                String request = "SELECT * FROM ( " +
+                        "SELECT * FROM \"message\" ORDER BY time DESC LIMIT "+ limit +
+                        ") AS last_messages " +
+                        "ORDER BY time ASC;";
                 Statement st = conn.createStatement();
                 ResultSet rs = st.executeQuery(request);
                 while (rs.next()) {

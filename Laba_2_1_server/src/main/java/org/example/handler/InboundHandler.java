@@ -1,37 +1,33 @@
 package org.example.handler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 
 import java.io.*;
-import java.net.Socket;
+
 import io.netty.channel.*;
-import io.netty.handler.codec.protobuf.ProtobufDecoder;
-import io.netty.handler.codec.protobuf.ProtobufEncoder;
-import io.netty.handler.codec.serialization.ObjectEncoder;
 import org.example.entity.MessageEntity;
 import org.example.entity.User;
 import org.example.message.Message;
-import org.example.message.storage.LoginRequest;
-import org.example.message.storage.LoginResponse;
-import org.example.message.storage.SendMessageRequest;
-import org.example.message.storage.SendMessageResponse;
+import org.example.message.storage.*;
 import org.example.repository.MessageRepo;
 import org.example.repository.UserRepo;
 
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
 
-public class NettyServerHandler extends ChannelInboundHandlerAdapter {
-    private final CopyOnWriteArrayList<Channel> channels;
+import static java.util.Arrays.*;
+
+public class InboundHandler extends ChannelInboundHandlerAdapter {
+    private final List<Channel> channels;
     private String clientName;
     private static int newClientIndex = 1;
     private UserRepo userRepo;
     private MessageRepo messageRepo;
 
-    public NettyServerHandler(CopyOnWriteArrayList<Channel> channels) {
+    public InboundHandler(CopyOnWriteArrayList<Channel> channels) {
         this.channels = channels;
     }
 
@@ -85,33 +81,37 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
                 var resMsg = "user <" + username +"> is successfully authorized";
 
                 if(isUserExist){
-                    var response = new LoginResponse(true);
-                    ctx.channel().writeAndFlush(response);
+                    var response = new LoginResponse( true);
+                    ctx.pipeline().channel().writeAndFlush(response);
                     System.out.println(resMsg);
                     System.out.println("Send response: " + response.getClass().getName());
                 }else{
                     var response = new LoginResponse(false);
-                    ctx.channel().writeAndFlush(response);
+                    ctx.pipeline().channel().writeAndFlush(response);
                     System.out.println("user<"+username+"> entered the wrong username or password");
                 }
             }else if(message instanceof SendMessageRequest){
                 var sendMessageRequest = (SendMessageRequest) message;
-
-                var username = sendMessageRequest.getUsername();
-                var msgInfo = sendMessageRequest.getMessage();
-                var time = sendMessageRequest.getTime();
-                
                 messageRepo = new MessageRepo();
-                messageRepo.createMessage(new MessageEntity(username, msgInfo, time));
 
-                System.out.println("get all messages: " + messageRepo.getAllMessages());
+                if(sendMessageRequest.isFirstTime()){
+                    var messages = messageRepo.getLimitMessage(10);
+                    for(var ms : messages){
+                        ctx.pipeline().channel().writeAndFlush(new SendMessageResponse(ms.username(), ms.message(), ms.time()));
+                    }
+                }else{
+                    var username = sendMessageRequest.getUsername();
+                    var msgInfo = sendMessageRequest.getMessage();
+                    var time = sendMessageRequest.getTime();
 
-                var response = new SendMessageResponse(username, msgInfo, time);
-                //ctx.channel().writeAndFlush(response);
+                    messageRepo.createMessage(new MessageEntity(username, msgInfo, time));
 
-                for(var ch : channels){
-                    ch.writeAndFlush(response);
-                    System.out.println("send message: " + response + " - to client >> " + ch);
+                    var response = new SendMessageResponse(username, msgInfo, time);
+
+                    for(var ch : channels){
+                        ch.writeAndFlush(response);
+                        System.out.println("send message: " + response + " - to client >> " + ch);
+                    }
                 }
             }
             ctx.fireChannelReadComplete();

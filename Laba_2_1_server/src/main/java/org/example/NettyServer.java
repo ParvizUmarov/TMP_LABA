@@ -8,8 +8,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import org.example.handler.NettyServerHandler;
-import org.example.handler.ObjectWriterHandler;
+import org.example.handler.InboundHandler;
+import org.example.handler.OutboundHandler;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -29,8 +29,8 @@ public class NettyServer {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
                                 channels.add(ch);
-                                ch.pipeline().addLast(new NettyServerHandler(channels));
-                                ch.pipeline().addLast(new ObjectWriterHandler());
+                                ch.pipeline().addLast(new InboundHandler(channels));
+                                ch.pipeline().addLast(new OutboundHandler());
                                 ch.pipeline().addLast(new LoggingHandler(LogLevel.INFO));
                         }
                     });

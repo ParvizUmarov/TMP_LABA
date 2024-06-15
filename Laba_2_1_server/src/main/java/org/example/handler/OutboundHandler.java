@@ -9,7 +9,7 @@ import io.netty.channel.ChannelPromise;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 
-public class ObjectWriterHandler extends ChannelOutboundHandlerAdapter {
+public class OutboundHandler extends ChannelOutboundHandlerAdapter {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
