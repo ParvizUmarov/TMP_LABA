@@ -54,6 +54,7 @@ public class Server {
             checkAuth(request);
             if (request instanceof AuthorizedMessage auth) {
                 var token = Token.fromText(auth.getAuthToken());
+                System.out.println("has request");
                 sessionService.hasRequest(token);
             }
             routeToHandler(transport, request);

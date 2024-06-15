@@ -24,16 +24,19 @@ public class DirectoryUploadCommand extends Command {
     @Override
     protected void performConnected() {
         io.print("enter directory name: ");
-        var directoryName = io.readln();
+        var input = io.readln();
+        var dirName = "";
 
-        if (directoryName.isBlank()) {
-            directoryName = "/home/parviz/t1";
+        if (input.isBlank()) {
+            dirName = "/home/parviz/t1";
+        }else{
+            dirName = STR."/home/parviz/\{input}";
         }
 
         io.print("enter folder where you want upload in your storage: ");
         var subdirectoryName = io.readln();
 
-        var directoryPath = Path.of(directoryName);
+        var directoryPath = Path.of(dirName);
         if (!Files.exists(directoryPath)) {
             throw new CommandException("Directory doesn't exist");
         }
@@ -45,9 +48,10 @@ public class DirectoryUploadCommand extends Command {
                     .sorted()
                     .toList();
             var i = 1;
+            System.out.println(STR."directoryPath.toString() \{directoryPath.toString()}");
             transport.send(new DirectoryUploadRequest(tokenHolder.getToken(), directoryPath.toString(), listOfFiles.size(), subdirectoryName));
             for (var file : listOfFiles) {
-                var filePath = Path.of(directoryName, file);
+                var filePath = Path.of(dirName, file);
                 var fileSize = Files.size(filePath);
                 try (var fileInputStream = Files.newInputStream(filePath)) {
                     io.println(STR."File \{file} is \{i++} send");

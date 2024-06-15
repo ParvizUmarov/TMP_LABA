@@ -29,7 +29,7 @@ public class SessionService {
     }
 
     public void hasRequest(Token token) {
-        token2sessionMap.get(token).setExpiredAt(LocalDateTime.now().plusMinutes(20));
+        token2sessionMap.get(token).setExpiredAt(LocalDateTime.now().plusMinutes(10));
     }
 
 

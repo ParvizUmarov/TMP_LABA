@@ -44,40 +44,45 @@ public class DirectoryUploadHandler extends Handler {
         var dirName = Path.of(String.valueOf(directoryPath)).getFileName();
         var subDirPath = STR."\{Settings.SERVER_FILE_STORAGE_BASE_PATH}/\{username}/\{subdirectoryName}/\{dirName}";
 
-            File dir = new File(subDirPath);
-            if (dir.exists()) {
-                throw new ServerException("Directory is exist");
-            }
+        File dir = new File(subDirPath);
+        if (dir.exists()) {
+            throw new ServerException("Directory is exist");
+        }
 
-            dir.mkdir();
+        dir.mkdir();
 
-            var path = Path.of(subdirectoryName);
-            var subDirName = Path.of(String.valueOf(path)).getFileName();
+        var path = Path.of(subdirectoryName);
 
+        var subDirName = Path.of(String.valueOf(path)).getFileName();
+        var directoryUploadPath = "";
+        if (subdirectoryName.isEmpty()) {
+            directoryUploadPath = Path.of(username, String.valueOf(dirName)).toString();
+        }else{
+            directoryUploadPath = Path.of(username, String.valueOf(subDirName)).toString();
+        }
 
-            var directoryUploadPath = Path.of(username, String.valueOf(subDirName)).toString();
-            System.out.println("dir path " + directoryUploadPath);
+        System.out.println("dir path " + directoryUploadPath);
 
-            int counter = 0;
-            while(directoryUploadRequest.getFileCount() != counter){
-                counter++;
-                System.out.println("file #" + counter);
-                var fileUploadRequest = transport.receive(FileUploadRequest.class);
-                var response = STR."file \{fileUploadRequest.getFilename()} is upload";
-                transport.send(new FileUploadResponse(false, response));
+        int counter = 0;
+        while (directoryUploadRequest.getFileCount() != counter) {
+            counter++;
+            System.out.println("file #" + counter);
+            var fileUploadRequest = transport.receive(FileUploadRequest.class);
+            var response = STR."file \{fileUploadRequest.getFilename()} is upload";
+            transport.send(new FileUploadResponse(false, response));
 
-                try (var fileOutputStream = fileSystemService.getDirOutputStream(directoryUploadPath, fileUploadRequest.getFilename())) {
-                    var transpotInputStream = transport.getInputStream();
-                    for (long i = 0; i < fileUploadRequest.getSize(); i++) {
-                        int b = transpotInputStream.read();
-                        fileOutputStream.write(b);
-                    }
-                    fileOutputStream.flush();
-                } catch (Exception e) {
-                    throw new ServerException(e);
+            try (var fileOutputStream = fileSystemService.getDirOutputStream(directoryUploadPath, fileUploadRequest.getFilename())) {
+                var transpotInputStream = transport.getInputStream();
+                for (long i = 0; i < fileUploadRequest.getSize(); i++) {
+                    int b = transpotInputStream.read();
+                    fileOutputStream.write(b);
                 }
-
+                fileOutputStream.flush();
+            } catch (Exception e) {
+                throw new ServerException(e);
             }
+
+        }
 
         transport.send(new DirectoryUploadResponse("Directory successfully upload"));
 
