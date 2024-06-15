@@ -37,6 +37,10 @@ public class App extends Application {
 
         LoginController controller = loader.getController();
         controller.setTransport(transport);
+        controller.setPrimaryStage(stage);
+
+//        ChatController chatController = loader.getController();
+//        chatController.setTransport(transport);
 
     }
 

@@ -3,15 +3,9 @@ package org.example.transport;
 import org.example.IO;
 import org.example.Settings;
 import org.example.message.Message;
-import org.example.message.ResponseListener;
-import org.example.message.storage.LoginResponse;
-import org.w3c.dom.ls.LSOutput;
-
 import java.io.*;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 public class Transport {
     private Socket socket;
@@ -67,37 +61,27 @@ public class Transport {
         }
     }
 
-//    public String receiveSignal() throws TransportException {
-//        checkIsConnected();
-//        try {
-//            byte[] signalBuffer = new byte[5];
-//            reader.readFully(signalBuffer);
-//            return new String(signalBuffer, StandardCharsets.UTF_8);
-//        } catch (IOException e) {
-//            throw new TransportException("Error receiving signal: " + e.getMessage());
-//        }
-//    }
-
     public Message receiveMessage() throws TransportException {
         checkIsConnected();
         try {
-
-            System.out.println("available " + reader.available());
-            byte[] lengthBuffer = new byte[4];
-            reader.readFully(lengthBuffer); // Чтение 4 байт, представляющих длину сообщения
-
-            int length = ByteBuffer.wrap(lengthBuffer).getInt(); // Преобразование 4 байт в int
+            int length = reader.readInt();
+            System.out.println("length: " + length);
             if (length <= 0) {
                 throw new TransportException("Invalid length received: " + length);
             }
 
-            byte[] byteArray = new byte[1024];
-            reader.readFully(byteArray); // Чтение полезной нагрузки
+            byte[] data = new byte[length];
+            reader.readFully(data);
 
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
-            ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
-            return (Message) objectInputStream.readObject(); // Десериализация полезной нагрузки в объект
+            ByteArrayInputStream bais = new ByteArrayInputStream(data);
+            ObjectInputStream ois = new ObjectInputStream(bais);
+            Message message = (Message) ois.readObject();
+            return message;
+        } catch (StreamCorruptedException e) {
+            System.err.println("StreamCorruptedException: " + e.getMessage());
+            throw new TransportException(e);
         } catch (Exception e) {
+            System.err.println("Error receiving message: " + e.getMessage());
             throw new TransportException(e);
         }
     }
