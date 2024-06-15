@@ -6,7 +6,6 @@ import org.example.entity.User;
 import java.sql.*;
 
 public class UserRepo {
-    private Statement st;
     private String userName;
     private String userPassword;
 
@@ -15,26 +14,24 @@ public class UserRepo {
     public boolean getUserFromDb(User user) {
         userName = "";
         userPassword = "";
-
         try (Connection conn = DriverManager.getConnection(
                 Settings.url,
                 Settings.username,
                 Settings.password)) {
             if (conn != null) {
-                System.out.println("Successful connection");
-                st = conn.createStatement();
+                System.out.println("Successful connection to db");
+                Statement st = conn.createStatement();
 
                 var request = "SELECT * FROM \"user\" WHERE name = '"+user.username()+"' and password = '"+user.password()+"'";
                 ResultSet rs = st.executeQuery(request);
                 System.out.println("request: " + request);
-
                 while (rs.next()) {
                     userName =  rs.getString("name");
                     userPassword = rs.getString("password");
 
-                    System.out.println("id " + rs.getString("id") );
-                    System.out.println("name " + userName );
-                    System.out.println("password " + userPassword );
+                    var userFromDb = new User(userName, userPassword);
+
+                    System.out.println(userFromDb);
                 }
 
             }

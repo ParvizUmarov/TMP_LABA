@@ -1,11 +1,14 @@
 package org.example.message.storage;
 
+import org.example.entity.MessageEntity;
 import org.example.message.Message;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class SendMessageResponse extends Message {
+    static final long serialVersionUID = -8506502531598632727L;
     private final String username;
     private final String message;
     private final LocalDateTime time;

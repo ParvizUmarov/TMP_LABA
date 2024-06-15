@@ -2,22 +2,19 @@ package org.example;
 
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import org.example.handler.InputHandler;
 import org.example.handler.NettyServerHandler;
-import org.example.handler.OutPutHandler;
+import org.example.handler.ObjectWriterHandler;
+
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class NettyServer {
+    private static final CopyOnWriteArrayList<Channel> channels = new CopyOnWriteArrayList<>();
 
     public static void main(String[] args){
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
@@ -31,9 +28,10 @@ public class NettyServer {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
-//                              ch.pipeline().addLast(new InputHandler());
-//                              ch.pipeline().addLast(new OutPutHandler());
-                                ch.pipeline().addLast(new NettyServerHandler());
+                                channels.add(ch);
+                                ch.pipeline().addLast(new NettyServerHandler(channels));
+                                ch.pipeline().addLast(new ObjectWriterHandler());
+                                ch.pipeline().addLast(new LoggingHandler(LogLevel.INFO));
                         }
                     });
 
