@@ -30,41 +30,15 @@ public class DirectoryUploadHandler extends Handler {
 
     @Override
     public void handle(Message message) {
-        var directoryUploadRequest = (DirectoryUploadRequest) message;
+        var request = (DirectoryUploadRequest) message;
 
-        var username = sessionService.get(Token.fromText(directoryUploadRequest.getAuthToken())).getString(Session.USERNAME);
-        var directoryName = directoryUploadRequest.getDirectoryName();
-        var directoryPath = Path.of(directoryName);
-
-        var subdirectoryName = directoryUploadRequest.getSubdirectoryName();
-        File subDir = new File(STR."\{Settings.SERVER_FILE_STORAGE_BASE_PATH}/\{username}/\{subdirectoryName}");
-
-        subDir.mkdir();
-
-        var dirName = Path.of(String.valueOf(directoryPath)).getFileName();
-        var subDirPath = STR."\{Settings.SERVER_FILE_STORAGE_BASE_PATH}/\{username}/\{subdirectoryName}/\{dirName}";
-
-        File dir = new File(subDirPath);
-        if (dir.exists()) {
-            throw new ServerException("Directory is exist");
-        }
-
-        dir.mkdir();
-
-        var path = Path.of(subdirectoryName);
-
-        var subDirName = Path.of(String.valueOf(path)).getFileName();
-        var directoryUploadPath = "";
-        if (subdirectoryName.isEmpty()) {
-            directoryUploadPath = Path.of(username, String.valueOf(dirName)).toString();
-        }else{
-            directoryUploadPath = Path.of(username, String.valueOf(subDirName)).toString();
-        }
+        var username = sessionService.get(Token.fromText(request.getAuthToken())).getString(Session.USERNAME);
+        var directoryUploadPath = getDirectoryUploadPath(request, username);
 
         System.out.println("dir path " + directoryUploadPath);
 
         int counter = 0;
-        while (directoryUploadRequest.getFileCount() != counter) {
+        while (request.getFileCount() != counter) {
             counter++;
             System.out.println("file #" + counter);
             var fileUploadRequest = transport.receive(FileUploadRequest.class);
@@ -86,6 +60,36 @@ public class DirectoryUploadHandler extends Handler {
 
         transport.send(new DirectoryUploadResponse("Directory successfully upload"));
 
+    }
+
+    private static String getDirectoryUploadPath(DirectoryUploadRequest request, String username) {
+        var directoryPath = Path.of(request.getDirectoryName());
+
+        var subdirectoryName = request.getSubdirectoryName();
+        File subDir = new File(STR."\{Settings.SERVER_FILE_STORAGE_BASE_PATH}/\{username}/\{subdirectoryName}");
+
+        subDir.mkdir();
+
+        var dirName = Path.of(String.valueOf(directoryPath)).getFileName();
+        var subDirPath = STR."\{Settings.SERVER_FILE_STORAGE_BASE_PATH}/\{username}/\{subdirectoryName}/\{dirName}";
+
+        File dir = new File(subDirPath);
+        if (dir.exists()) {
+            throw new ServerException("Directory is exist");
+        }
+
+        dir.mkdir();
+
+        var path = Path.of(subdirectoryName);
+
+        var subDirName = Path.of(String.valueOf(path)).getFileName();
+        var directoryUploadPath = "";
+        if (subdirectoryName.isEmpty()) {
+            directoryUploadPath = Path.of(username, String.valueOf(dirName)).toString();
+        }else{
+            directoryUploadPath = Path.of(username, String.valueOf(subDirName), String.valueOf(dirName)).toString();
+        }
+        return directoryUploadPath;
     }
 }
 
