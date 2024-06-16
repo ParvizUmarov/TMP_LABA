@@ -1,9 +1,7 @@
 package app.client;
 
 import app.IO;
-import app.client.command.HelpCommand;
-import app.client.command.LoginCommand;
-import app.client.command.PrintCommand;
+import app.client.command.*;
 import app.transport.SerializedTransport;
 import app.transport.Transport;
 
@@ -18,7 +16,6 @@ public class Client {
 
     private void commandLoop(){
         String userInput;
-
         do {
             io.print(">>> ");
             userInput = io.readln().strip().toLowerCase();
@@ -26,10 +23,11 @@ public class Client {
             try {
                 (switch (userInput) {
 //                    case "exit" -> new PrintCommand(transport, io, "bye!");
-//                    case "register" -> new RegisterCommand(transport, io);
+                    case "register" -> new RegisterCommand(transport, io);
                     case "login" -> new LoginCommand(transport, io, tokenHolder);
-//                    case "token" -> new PrintCommand(transport, io, tokenHolder.getToken());
-//                    case "check auth" -> new CheckAuthCommand(transport, io, tokenHolder);
+                    case "token" -> new PrintCommand(transport, io, tokenHolder.getToken());
+                    case "profile" -> new CheckAuthCommand(transport, io, tokenHolder);
+                    case "logout" -> new LogoutCommand(transport, io, tokenHolder);
                     case "help" -> new HelpCommand(transport, io);
                     default -> new PrintCommand(transport, io, unrecognizedCommand);
                 }).perform();

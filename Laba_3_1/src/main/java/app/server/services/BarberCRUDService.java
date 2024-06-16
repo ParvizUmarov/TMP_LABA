@@ -5,15 +5,10 @@ import app.server.entity.Barber;
 import app.server.repository.BarberRepository;
 
 import java.util.Collection;
-import java.util.List;
 
 public class BarberCRUDService implements CRUDService<Barber>{
 
-    private final BarberRepository repository;
-
-    public BarberCRUDService(BarberRepository repository) {
-        this.repository = repository;
-    }
+    private final BarberRepository repository= new BarberRepository();
 
     @Override
     public Collection<Barber> getAll() {
@@ -21,8 +16,8 @@ public class BarberCRUDService implements CRUDService<Barber>{
     }
 
     @Override
-    public void create(Barber object) {
-
+    public void create(Barber barber) {
+       repository.registerBarber(barber);
     }
 
     @Override
@@ -36,7 +31,26 @@ public class BarberCRUDService implements CRUDService<Barber>{
     }
 
     @Override
-    public Barber get(Integer id) {
-        return null;
+    public Barber get(String name) {
+        return repository.getBarberByName(name);
     }
+
+    public Barber checkPassword(String username, String password){
+        var barber = repository.getBarberByName(username);
+        if(barber != null){
+            if(barber.password().equals(password)){
+                repository.changeAuthState(barber.mail(), true);
+                return barber;
+            }else{
+                return null;
+            }
+        }else{
+            return null;
+        }
+    }
+
+    public void logout(String mail){
+        repository.changeAuthState(mail, false);
+    }
+
 }

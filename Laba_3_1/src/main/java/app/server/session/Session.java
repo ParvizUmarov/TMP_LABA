@@ -1,13 +1,24 @@
 package app.server.session;
 
+import app.server.user.UserType;
+
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Session {
     private final Map<String, Object> map = new ConcurrentHashMap<>();
-    public static final String USERNAME = "username";
+    public static final String MAIL = "mail";
     private LocalDateTime expiredAt;
+    private UserType userType;
+
+    public void setUserType(UserType userType) {
+        this.userType = userType;
+    }
+
+    public UserType getUserType() {
+        return userType;
+    }
 
     public LocalDateTime getExpiredAt() {
         return expiredAt;
@@ -37,3 +48,4 @@ public class Session {
         return (String) get(key);
     }
 }
+

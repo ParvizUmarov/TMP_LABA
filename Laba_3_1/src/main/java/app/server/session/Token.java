@@ -10,7 +10,7 @@ public class Token {
         this.text = UUID.randomUUID().toString();
     }
 
-    private Token(String text) {
+    public Token(String text) {
         this.text = text;
     }
 

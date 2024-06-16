@@ -10,8 +10,8 @@ public class SessionService {
     private final Map<Token, Session> token2sessionMap = new ConcurrentHashMap<>();
     private final ConcurrentLinkedQueue<Object> queue = new ConcurrentLinkedQueue<>();
 
-    public TokenSession create() {
-        var token = new Token();
+    public TokenSession create(String value) {
+        var token = new Token(value);
         var session = new Session();
         token2sessionMap.put(token, session);
         return new TokenSession(token, session);

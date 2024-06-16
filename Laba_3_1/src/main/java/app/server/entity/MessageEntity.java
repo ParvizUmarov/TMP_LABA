@@ -2,8 +2,7 @@ package app.server.entity;
 
 import java.security.Timestamp;
 
-public class Message {
-
+public class MessageEntity {
     private Integer id;
     private Integer chatId;
     private String message;

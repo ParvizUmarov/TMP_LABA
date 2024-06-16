@@ -2,7 +2,8 @@ package app.server;
 
 import app.IO;
 import app.Settings;
-import app.server.net.*;
+import app.server.handler.*;
+import app.server.services.*;
 import app.server.session.SessionService;
 import app.server.session.Token;
 import app.server.user.UserService;
@@ -11,8 +12,7 @@ import app.transport.Transport;
 import app.transport.message.AuthorizedMessage;
 import app.transport.message.ErrorResponse;
 import app.transport.message.Message;
-import app.transport.message.storage.HelpRequest;
-import app.transport.message.storage.LoginRequest;
+import app.transport.message.storage.*;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -24,6 +24,12 @@ public class Server {
     private final UserService userService = new UserService();
     private final SessionService sessionService = new SessionService();
     private ExecutorService pool = Executors.newCachedThreadPool();
+    private BarberCRUDService barberCRUDService = new BarberCRUDService();
+    private CustomerCRUDService customerCRUDService = new CustomerCRUDService();
+    private SalonCRUDService salonCRUDService = new SalonCRUDService();
+    private ServiceCRUDService serviceCRUDService = new ServiceCRUDService();
+    private TokenCRUDService tokenCRUDService = new TokenCRUDService();
+    private OrdersCRUDService ordersCRUDService = new OrdersCRUDService();
 
     public static void main(String[] args) throws Exception {
         new Server().listenLoop();
@@ -81,7 +87,11 @@ public class Server {
     private void routeToHandler(Transport transport, Message request) {
         (switch (request) {
             case HelpRequest req -> new HelpHandler(transport, io);
-            case LoginRequest req -> new LoginHandler(transport, io, userService, sessionService);
+            case LoginRequest req -> new LoginHandler(transport, io, sessionService, barberCRUDService, customerCRUDService, ordersCRUDService, tokenCRUDService);
+            case CheckAuthRequest req -> new CheckAuthHandler(transport, io, sessionService, tokenCRUDService);
+            case RegisterBarberRequest req -> new RegisterBarberHandler(transport, io, barberCRUDService, salonCRUDService, serviceCRUDService);
+            case RegisterCustomerRequest req -> new RegisterCustomerHandler(transport, io, customerCRUDService);
+            case LogoutRequest req -> new LogoutHandler(transport, io, tokenCRUDService, barberCRUDService, customerCRUDService);
             default -> new UnimplementedHandler(transport, io);
         }).handle(request);
     }

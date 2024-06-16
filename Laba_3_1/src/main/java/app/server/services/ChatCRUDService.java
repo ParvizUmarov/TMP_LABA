@@ -30,7 +30,7 @@ public class ChatCRUDService implements CRUDService<Chat>{
     }
 
     @Override
-    public Chat get(Integer id) {
+    public Chat get(String id) {
         return null;
     }
 }
