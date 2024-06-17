@@ -35,7 +35,7 @@ public class InboundHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         InternalLoggerFactory.setDefaultFactory(Slf4JLoggerFactory.INSTANCE);
         System.out.println("Client connected: " + ctx);
-        channels.add(ctx.channel());
+//        channels.add(ctx.channel());
         ctx.writeAndFlush("CONNECTED");
         clientName = "Client #" + newClientIndex;
         newClientIndex++;
